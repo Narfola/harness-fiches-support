@@ -62,10 +62,36 @@ def lancer(verifier=False):
             continue
         if not saisie:
             continue
+        # À faire (étape 3) : /joindre <fiche.md> <question> joint la fiche à la question.
+        if saisie.startswith("/joindre "):
+            parties = saisie.split(" ", 2)
+            if len(parties) >= 3:
+                nom_fiche = parties[1]
+                question_utilisateur = parties[2]
+                try:
+                    question = conversation.joindre_fiche(
+                        nom_fiche, question_utilisateur, limites
+                    )
+                    signaler("Le service réfléchit…")
+                    reponse = conversation.poser(
+                        question,
+                        messages,
+                        service,
+                        configuration["modele"],
+                        limites,
+                        confirmer,
+                        signaler,
+                    )
+                    console.print(Markdown(reponse))
+                except Exception as erreur:
+                    console.print(f"[red]Erreur : {erreur}[/red]")
+                continue
+            else:
+                console.print("[yellow]Usage : /joindre <fiche.md> <question>[/yellow]")
+                continue
         question = saisie
         # À faire (étape 2) : afficher les erreurs du service sans quitter.
         try:
-            # À faire (étape 3) : /joindre <fiche.md> <question> joint la fiche à la question.
             signaler("Le service réfléchit…")
             reponse = conversation.poser(
                 question,
