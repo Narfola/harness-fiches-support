@@ -51,7 +51,7 @@ def charger_configuration():
         if not modele:
             manquants.append("MODELE")
         raise ConfigurationInvalide(
-            f"Configuration manquante : les variables {', '.join(manquants)} et doivent être définies dans le fichier .env"
+            f"Configuration manquante : les variables {', '.join(manquants)} doivent être définies dans le fichier .env"
         )
     # raise NotImplementedError("Étape 1 : charger_configuration")
     # renvoyer {"service": "litellm", "url": ..., "cle": ..., "modele": ...}.

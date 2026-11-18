@@ -40,6 +40,10 @@ def envoyer(client, modele, messages, outils=None):
         else:
             reponse = client.chat.completions.create(model=modele, messages=messages)
         return reponse
+    except openai.AuthenticationError:
+        raise ServiceIndisponible("Votre clé API est invalide ou expirée.")
+    except openai.APITimeoutError:
+        raise ServiceIndisponible("Le serveur a mis trop de temps à répondre")
     except Exception as e:
         raise ServiceIndisponible(
             f"Le service est indisponible pour le moment. Erreur : {e}"

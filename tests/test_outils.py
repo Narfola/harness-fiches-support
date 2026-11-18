@@ -19,6 +19,14 @@ def test_lecture_fiche_valide(limites):
     assert lire_fiche("test.md", limites) == "Contenu de test"
 
 
+def test_lire_fiche_non_existent(limites):
+    fiche_dir = Path(limites["dossier_fiches"])
+    fiche_dir.mkdir(parents=True, exist_ok=True)
+
+    with pytest.raises(AccesRefuse, match="n'existe pas"):
+        lire_fiche("un_fichier_inexistant.md", limites)
+
+
 def test_refuse_chemin_absolu(limites):
     with pytest.raises(AccesRefuse):
         lire_fiche("/etc/passwd", limites)

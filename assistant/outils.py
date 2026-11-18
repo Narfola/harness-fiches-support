@@ -61,6 +61,8 @@ def lire_fiche(nom, limites):
     # À faire (étape 3) : contrôler le chemin et la taille, puis lire la fiche.
     # raise NotImplementedError("Étape 3 : lire_fiche")
     chemin = chemin_autorise(nom, limites)
+    if not chemin.exists():
+        raise AccesRefuse(f"La fiche '{nom}' n'existe pas.")
     if chemin.suffix != limites["extension"]:
         raise AccesRefuse(
             f"Extension non autorisée. Seuls les fichiers .{limites['extension']} sont acceptés."
