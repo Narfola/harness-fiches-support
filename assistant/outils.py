@@ -41,7 +41,12 @@ def chemin_autorise(nom, limites):
     """Renvoie le chemin de la fiche si elle reste dans le dossier des fiches, sinon lève AccesRefuse."""
     # À faire (étape 3) : refuser tout chemin hors du dossier, y compris par .., chemin absolu
     dossier_autorise = Path(limites["dossier_fiches"]).resolve()
-    chemin_demande = Path(nom).resolve()
+    chemin_nom = Path(nom)
+
+    if chemin_nom.is_absolute():
+        chemin_demande = chemin_nom.resolve()
+    else:
+        chemin_demande = (dossier_autorise / chemin_nom).resolve()
 
     if not chemin_demande.is_relative_to(dossier_autorise):
         raise AccesRefuse(f"Chemin hors du dossier autorisé : {nom}")
