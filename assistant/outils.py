@@ -1,6 +1,7 @@
 """Outils proposés au modèle : lire et écrire une fiche, dans les limites fixées."""
 
 from pathlib import Path
+import json
 
 DEFINITIONS = [
     {
@@ -65,7 +66,7 @@ def lire_fiche(nom, limites):
         raise AccesRefuse(f"La fiche '{nom}' n'existe pas.")
     if chemin.suffix != limites["extension"]:
         raise AccesRefuse(
-            f"Extension non autorisée. Seuls les fichiers .{limites['extension']} sont acceptés."
+            f"Extension non autorisée. Seuls les fichiers {limites['extension']} sont acceptés."
         )
     taille = chemin.stat().st_size / 1024
     if taille > limites["taille_max_ko"]:
@@ -85,4 +86,19 @@ def executer(appel, limites, confirmer):
     """Exécute un appel d’outil du modèle et renvoie le texte de son résultat, ou lève AccesRefuse."""
     # À faire (étape 3) : lire les arguments JSON de appel.function.arguments,
     # puis lancer l’outil nommé appel.function.name ; tout appel invalide est refusé.
-    raise NotImplementedError("Étape 3 : executer")
+    try:
+        arguments = json.loads(appel.function.arguments)
+    except (json.JSONDecodeError, TypeError):
+        raise AccesRefuse("Arguments JSOn invalides.")
+
+    nom_outil = appel.function.name
+
+    if nom_outil == "lire_fiche":
+        nom = arguments.get("nom")
+        if not nom:
+            raise AccesRefuse("Nom de fiche non renseigner")
+        return lire_fiche(nom, limites)
+
+    else:
+        raise AccesRefuse(f"L'outil '{nom_outil}' n'est pas supporté.")
+    # raise NotImplementedError("Étape 3 : executer")
