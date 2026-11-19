@@ -2,7 +2,8 @@
 
 from rich.console import Console
 from rich.markdown import Markdown
-from rich.prompt import Prompt
+from rich.prompt import Prompt, Confirm
+from pathlib import Path
 
 from assistant import client, conversation
 from assistant.configuration import (
@@ -22,7 +23,11 @@ console = Console()
 def confirmer(nom):
     """Demande à l’utilisateur s’il accepte d’écraser la fiche."""
     # À faire (étape 4).
-    raise NotImplementedError("Étape 4 : confirmer")
+    # raise NotImplementedError("Étape 4 : confirmer")
+    chemin = Path(nom)
+    if chemin.exists():
+        return Confirm.ask(f"Le fichier '{nom}' existe déja. Voulez-vous l'écraser")
+    return True
 
 
 def signaler(texte):

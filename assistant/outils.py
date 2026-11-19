@@ -21,8 +21,29 @@ DEFINITIONS = [
             },
         },
     },
-    # À faire (étape 4) : décrire l’outil ecrire_fiche.
+    {
+        "type": "function",
+        "function": {
+            "name": "ecrire_fiche",
+            "description": "Enregistre ou modifie une fiche de procédure en Markdown.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "nom": {
+                        "type": "string",
+                        "description": "Nom du fichier, par exemple modifier-taux-tva.md",
+                    },
+                    "contenu": {
+                        "type": "string",
+                        "description": "Le contenu Markdown de la fiche à enregistrer.",
+                    },
+                },
+                "required": ["nom", "contenu"],
+            },
+        },
+    },
 ]
+# À faire (étape 4) : décrire l’outil ecrire_fiche.
 
 
 class AccesRefuse(Exception):
@@ -79,7 +100,20 @@ def lire_fiche(nom, limites):
 def ecrire_fiche(nom, contenu, limites, confirmer):
     """Enregistre la fiche ; confirmer(nom) décide d’un écrasement. Lève AccesRefuse sinon."""
     # À faire (étape 4) : contrôler le chemin et la taille, demander confirmation avant d’écraser.
-    raise NotImplementedError("Étape 4 : ecrire_fiche")
+    # raise NotImplementedError("Étape 4 : ecrire_fiche")
+    chemin = chemin_autorise(nom, limites)
+    if chemin.exists():
+        if not confirmer(str(chemin)):
+            raise AccesRefuse("L'utilisateur a refusé d'écraser la fiche.")
+
+    taille = len(contenu.encode("utf-8")) / 1024
+    if taille > limites["taille_max_ko"]:
+        raise AccesRefuse(
+            f"Le contenu est trop volumineux (max {limites['taille_max_ko']} ko)."
+        )
+
+    chemin.write_text(contenu, encoding="utf-8")
+    return f"La fiche '{nom}' a été enregistrée avec succès."
 
 
 def executer(appel, limites, confirmer):
@@ -98,6 +132,13 @@ def executer(appel, limites, confirmer):
         if not nom:
             raise AccesRefuse("Nom de fiche non renseigner")
         return lire_fiche(nom, limites)
+
+    elif nom_outil == "ecrire_fiche":
+        nom = arguments.get("nom")
+        contenu = arguments.get("contenu")
+        if not nom or not contenu:
+            raise AccesRefuse("Le nom et le contenu de la fiche sont requis.")
+        return ecrire_fiche(nom, contenu, limites, confirmer)
 
     else:
         raise AccesRefuse(f"L'outil '{nom_outil}' n'est pas supporté.")

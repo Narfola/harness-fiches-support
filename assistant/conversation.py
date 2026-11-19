@@ -24,7 +24,7 @@ def joindre_fiche(nom, question, limites):
     # À faire (étape 3).
     # raise NotImplementedError("Étape 3 : joindre_fiche")
     contenu = outils.lire_fiche(nom, limites)
-    return f"Contenu de la fiche {nom} : {contenu}\n Question : {question}"
+    return f"Contenu de la fiche {nom} : \n{contenu}\n Question : {question}"
 
 
 def poser(question, messages, service, modele, limites, confirmer, signaler):
@@ -35,6 +35,8 @@ def poser(question, messages, service, modele, limites, confirmer, signaler):
     """
     # À faire (étape 2) : envoyer la conversation avec client.envoyer et garder l’historique.
     # À faire (étape 3) : exécuter les appels d’outil du modèle jusqu’à sa réponse finale.
+    nb_appels = 0
+    limite_appels = limites["appels_outil_max"]
     messages.append({"role": "user", "content": question})
     while True:
         reponse = client.envoyer(service, modele, messages)
@@ -43,6 +45,11 @@ def poser(question, messages, service, modele, limites, confirmer, signaler):
 
         if not reponse_message.tool_calls:
             return reponse_message.content
+
+        nb_appels += len(reponse_message.tool_calls)
+
+        if nb_appels > limite_appels:
+            return "La limite d'appels d'outils pour cette conversation a été atteinte."
 
         for tool_call in reponse_message.tool_calls:
 
