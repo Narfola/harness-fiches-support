@@ -39,22 +39,42 @@ def poser(question, messages, service, modele, limites, confirmer, signaler):
     limite_appels = limites["appels_outil_max"]
     messages.append({"role": "user", "content": question})
     while True:
-        reponse = client.envoyer(service, modele, messages)
+        reponse = client.envoyer(service, modele, messages, outils=outils.DEFINITIONS)
         reponse_message = reponse.choices[0].message
-        messages.append({"role": "assistant", "content": reponse_message.content})
+
+        content = reponse_message.content if reponse_message.content is not None else ""
+
+        message_assistant = {
+            "role": "assistant",
+            "content": content,
+        }
+
+        if reponse_message.tool_calls:
+            message_assistant["tool_calls"] = [
+                {
+                    "id": tc.id,
+                    "type": "function",
+                    "function": {
+                        "name": tc.function.name,
+                        "arguments": tc.function.arguments,
+                    },
+                }
+                for tc in reponse_message.tool_calls
+            ]
+
+        messages.append(message_assistant)
 
         if not reponse_message.tool_calls:
-            return reponse_message.content
+            return content
 
         nb_appels += len(reponse_message.tool_calls)
-
         if nb_appels > limite_appels:
             return "La limite d'appels d'outils pour cette conversation a été atteinte."
 
         for tool_call in reponse_message.tool_calls:
-
             try:
                 resultat = outils.executer(tool_call, limites, confirmer)
+                signaler(f"L'outils {tool_call.function.name} à été éxecuter")
             except outils.AccesRefuse as erreur:
                 resultat = f"Erreur : {erreur}"
             except Exception as erreur:
@@ -63,7 +83,5 @@ def poser(question, messages, service, modele, limites, confirmer, signaler):
             messages.append(
                 {"role": "tool", "tool_call_id": tool_call.id, "content": resultat}
             )
-
     # À faire (étape 4) : arrêter la question au-delà des limites.
     # raise NotImplementedError("Étape 2 : poser")
-    return contenu_reponse
